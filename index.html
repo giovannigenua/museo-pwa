@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Museo Frigento - Virtual Tour</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <header>
+        <h1>Benvenuto al Museo Frigento</h1>
+    </header>
+    <main>
+        <p>Avvicinati a un'opera per iniziare il virtual tour!</p>
+        <div id="content">
+            <!-- Il contenuto dinamico verrà caricato qui -->
+        </div>
+    </main>
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('Service Worker registrato con successo'))
+                .catch((error) => console.log('Errore nella registrazione del Service Worker:', error));
+        }
+    </script>
+</body>
+</html>
