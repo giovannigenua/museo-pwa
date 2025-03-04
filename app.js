@@ -16,7 +16,7 @@ async function startScanning() {
         // Richiedi un dispositivo Bluetooth
         const device = await navigator.bluetooth.requestDevice({
             acceptAllDevices: true, // Accetta tutti i dispositivi BLE
-            optionalServices: ['feaa'] // Servizio Eddystone
+            optionalServices: ['0000feaa-0000-1000-8000-00805f9b34fb'] // UUID del servizio Eddystone
         });
 
         console.log('Dispositivo trovato:', device.name);
@@ -26,7 +26,7 @@ async function startScanning() {
         console.log('Connesso al dispositivo:', device.name);
 
         // Ottieni il servizio Eddystone
-        const service = await server.getPrimaryService('feaa');
+        const service = await server.getPrimaryService('0000feaa-0000-1000-8000-00805f9b34fb');
         console.log('Servizio Eddystone trovato:', service);
 
         // Leggi i dati del beacon
