@@ -20,3 +20,8 @@ self.addEventListener('fetch', (event) => {
             .then((response) => response || fetch(event.request))
     );
 });
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+        registrations.forEach(reg => reg.unregister());
+    });
+}
