@@ -1,11 +1,11 @@
-const CACHE_NAME = 'museo-frigento-v1';
-const urlsToCache = [
-    '/',
-    '/index.html',
-    '/styles.css',
-    '/app.js',
-    '/icon.png'
-];
+//const CACHE_NAME = 'museo-frigento-v1';
+//const urlsToCache = [
+//    '/',
+//    '/index.html',
+//    '/styles.css',
+//    '/app.js',
+//    '/icon.png'
+//];
 
 self.addEventListener('install', (event) => {
     event.waitUntil(
