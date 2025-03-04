@@ -1,3 +1,33 @@
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (event) => {
+    // Previeni la visualizzazione automatica del prompt di installazione
+    event.preventDefault();
+    deferredPrompt = event;
+
+    // Mostra il pulsante di installazione
+    const installButton = document.getElementById('installButton');
+    installButton.style.display = 'block';
+
+    // Gestisci il clic sul pulsante di installazione
+    installButton.addEventListener('click', () => {
+        // Mostra il prompt di installazione
+        deferredPrompt.prompt();
+
+        // Attendi la scelta dell'utente
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                console.log('L\'utente ha accettato l\'installazione');
+            } else {
+                console.log('L\'utente ha rifiutato l\'installazione');
+            }
+
+            // Resetta la variabile deferredPrompt
+            deferredPrompt = null;
+        });
+    });
+});
+
 const urlMap = {
     'ACFD065E1A514932AC01000002040849': 'https://www.museofrigento.it/virtualtour/',
 };
