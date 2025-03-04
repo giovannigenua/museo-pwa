@@ -1,22 +1,4 @@
-//document.addEventListener('DOMContentLoaded', () => {
-//    const contentDiv = document.getElementById('content');
-//    contentDiv.innerHTML = '<p>Caricamento in corso...</p>';
-//
-    // Simula il caricamento di un virtual tour
-//    setTimeout(() => {
-//        contentDiv.innerHTML = `
-//            <iframe 
-//                src="https://www.museofrigento.it/virtualtour/" 
-//                width="100%" 
-//                height="500px" 
-//                frameborder="0" 
-//                allowfullscreen>
-//            </iframe>
-//        `;
-//    }, 2000);
-//});
 
-// Mappa degli URL
 const urlMap = {
     'ACFD065E1A514932AC01000002040849': 'https://www.museofrigento.it/virtualtour/',
 };
@@ -27,7 +9,13 @@ async function scanForBeacons() {
 
         // Verifica se il browser supporta l'API Web Bluetooth Scanning
         if (!navigator.bluetooth || !navigator.bluetooth.requestLEScan) {
-            throw new Error('Il browser non supporta la scansione BLE.');
+            throw new Error('Il browser non supporta la scansione BLE. Prova con Chrome per Android.');
+        }
+
+        // Richiedi i permessi per la posizione (necessari per il Bluetooth su Android)
+        const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+        if (permissionStatus.state !== 'granted') {
+            throw new Error('È necessario concedere i permessi per la posizione.');
         }
 
         // Avvia la scansione BLE
@@ -93,7 +81,7 @@ async function scanForBeacons() {
     } catch (error) {
         console.error('Errore:', error);
         const contentDiv = document.getElementById('content');
-        contentDiv.innerHTML = `<p>Errore durante la scansione dei beacon: ${error.message}</p>`;
+        contentDiv.innerHTML = `<p>${error.message}</p>`;
     }
 }
 
