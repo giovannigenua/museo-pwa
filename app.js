@@ -34,7 +34,7 @@ const urlMap = {
 };
 
 // UUID del servizio Eddystone
-const EDDYSTONE_SERVICE_UUID = 'ACFD065EC3C011E39BBE1A514932AC01';
+const EDDYSTONE_SERVICE_UUID = '0000feaa-0000-1000-8000-00805f9b34fb';
 
 // Avvia la scansione dei beacon
 async function startScanning() {
