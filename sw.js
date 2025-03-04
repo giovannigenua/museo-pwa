@@ -1,4 +1,4 @@
-const CACHE_NAME = 'museo-frigento-v2';
+const CACHE_NAME = 'museo-frigento-v1';
 const urlsToCache = [
     '/',
     '/index.html',
