@@ -28,10 +28,13 @@ window.addEventListener('beforeinstallprompt', (event) => {
     });
 });
 
-const urlMap = {
-    'ACFD065E1A514932AC01000002040849': 'https://www.museofrigento.it/virtualtour/',
-};
 // Mappa degli URL
+const urlMap = {
+    'ACFD065E1A514932AC01000002040849': 'https://www.museofrigento.it/virtualtour/'
+};
+
+// UUID del servizio Eddystone
+const EDDYSTONE_SERVICE_UUID = '0000feaa-0000-1000-8000-00805f9b34fb';
 
 // Avvia la scansione dei beacon
 async function startScanning() {
@@ -46,7 +49,7 @@ async function startScanning() {
         // Richiedi un dispositivo Bluetooth
         const device = await navigator.bluetooth.requestDevice({
             acceptAllDevices: true, // Accetta tutti i dispositivi BLE
-            optionalServices: ['0000feaa-0000-1000-8000-00805f9b34fb'] // UUID del servizio Eddystone
+            optionalServices: [EDDYSTONE_SERVICE_UUID] // UUID del servizio Eddystone
         });
 
         console.log('Dispositivo trovato:', device.name);
@@ -55,40 +58,46 @@ async function startScanning() {
         const server = await device.gatt.connect();
         console.log('Connesso al dispositivo:', device.name);
 
-        // Ottieni il servizio Eddystone
-        const service = await server.getPrimaryService('0000feaa-0000-1000-8000-00805f9b34fb');
-        console.log('Servizio Eddystone trovato:', service);
+        // Prova a ottenere il servizio Eddystone
+        try {
+            const service = await server.getPrimaryService(EDDYSTONE_SERVICE_UUID);
+            console.log('Servizio Eddystone trovato:', service);
 
-        // Leggi i dati del beacon
-        const characteristic = await service.getCharacteristic('2a6e'); // Caratteristica Eddystone
-        const value = await characteristic.readValue();
-        const decoder = new TextDecoder('utf-8');
-        const beaconData = decoder.decode(value);
+            // Leggi i dati del beacon
+            const characteristic = await service.getCharacteristic('2a6e'); // Caratteristica Eddystone
+            const value = await characteristic.readValue();
+            const decoder = new TextDecoder('utf-8');
+            const beaconData = decoder.decode(value);
 
-        console.log('Dati del beacon:', beaconData);
+            console.log('Dati del beacon:', beaconData);
 
-        // Decodifica l'identificativo del beacon
-        const beaconId = beaconData.slice(0, 32); // Esempio: estrai i primi 32 caratteri
-        console.log('Identificativo del beacon rilevato:', beaconId);
+            // Decodifica l'identificativo del beacon
+            const beaconId = beaconData.slice(0, 32); // Esempio: estrai i primi 32 caratteri
+            console.log('Identificativo del beacon rilevato:', beaconId);
 
-        // Ottieni l'URL corrispondente dalla mappa
-        const url = urlMap[beaconId];
-        if (url) {
-            // Mostra il virtual tour o il contenuto corrispondente
+            // Ottieni l'URL corrispondente dalla mappa
+            const url = urlMap[beaconId];
+            if (url) {
+                // Mostra il virtual tour o il contenuto corrispondente
+                const contentDiv = document.getElementById('content');
+                contentDiv.innerHTML = `
+                    <iframe 
+                        src="${url}" 
+                        width="100%" 
+                        height="500px" 
+                        frameborder="0" 
+                        allowfullscreen>
+                    </iframe>
+                `;
+            } else {
+                console.error('Identificativo non riconosciuto:', beaconId);
+                const contentDiv = document.getElementById('content');
+                contentDiv.innerHTML = `<p>Nessun contenuto trovato per questo beacon.</p>`;
+            }
+        } catch (error) {
+            console.error('Errore durante la lettura del beacon:', error);
             const contentDiv = document.getElementById('content');
-            contentDiv.innerHTML = `
-                <iframe 
-                    src="${url}" 
-                    width="100%" 
-                    height="500px" 
-                    frameborder="0" 
-                    allowfullscreen>
-                </iframe>
-            `;
-        } else {
-            console.error('Identificativo non riconosciuto:', beaconId);
-            const contentDiv = document.getElementById('content');
-            contentDiv.innerHTML = `<p>Nessun contenuto trovato per questo beacon.</p>`;
+            contentDiv.innerHTML = `<p>Il dispositivo non supporta il formato Eddystone.</p>`;
         }
 
         // Disconnetti dal dispositivo
