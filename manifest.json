@@ -1,7 +1,7 @@
 {
     "name": "Museo Frigento - Virtual Tour",
     "short_name": "MuseoFrigento",
-    "start_url": "./index.html",
+    "start_url": "./",
     "display": "standalone",
     "background_color": "#333",
     "theme_color": "#333",
