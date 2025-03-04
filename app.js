@@ -1,4 +1,4 @@
-
+import 'bluetooth.js';
 const urlMap = {
     'ACFD065E1A514932AC01000002040849': 'https://www.museofrigento.it/virtualtour/',
 };
