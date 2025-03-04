@@ -4,57 +4,72 @@ const urlMap = {
 // Mappa degli URL
 
 // Avvia la scansione dei beacon
-function startScanning() {
-    // Verifica se il browser supporta la libreria
-    if (!EddystoneScanner) {
-        console.error('La libreria EddystoneScanner non è supportata.');
-        return;
-    }
+async function startScanning() {
+    try {
+        console.log('Avvio della scansione dei beacon...');
 
-    console.log('Avvio della scansione dei beacon...');
-
-    // Configura il listener per i beacon rilevati
-    EddystoneScanner.addEventListener('found', (beacon) => {
-        console.log('Beacon rilevato:', beacon);
-
-        // Verifica se è un beacon Eddystone-UID
-        if (beacon.type === 'uid') {
-            const namespace = beacon.id.slice(0, 20); // I primi 10 byte (20 caratteri esadecimali)
-            const instance = beacon.id.slice(20); // Ultimi 6 byte (12 caratteri esadecimali)
-            const beaconId = namespace + instance;
-
-            console.log('Identificativo del beacon rilevato:', beaconId);
-
-            // Ottieni l'URL corrispondente dalla mappa
-            const url = urlMap[beaconId];
-            if (url) {
-                // Mostra il virtual tour o il contenuto corrispondente
-                const contentDiv = document.getElementById('content');
-                contentDiv.innerHTML = `
-                    <iframe 
-                        src="${url}" 
-                        width="100%" 
-                        height="500px" 
-                        frameborder="0" 
-                        allowfullscreen>
-                    </iframe>
-                `;
-            } else {
-                console.error('Identificativo non riconosciuto:', beaconId);
-                const contentDiv = document.getElementById('content');
-                contentDiv.innerHTML = `<p>Nessun contenuto trovato per questo beacon.</p>`;
-            }
+        // Verifica se il browser supporta l'API Web Bluetooth
+        if (!navigator.bluetooth) {
+            throw new Error('Il browser non supporta l\'API Web Bluetooth.');
         }
-    });
 
-    // Avvia la scansione
-    EddystoneScanner.start();
-}
+        // Richiedi un dispositivo Bluetooth
+        const device = await navigator.bluetooth.requestDevice({
+            acceptAllDevices: true, // Accetta tutti i dispositivi BLE
+            optionalServices: ['feaa'] // Servizio Eddystone
+        });
 
-// Ferma la scansione
-function stopScanning() {
-    EddystoneScanner.stop();
-    console.log('Scansione BLE fermata.');
+        console.log('Dispositivo trovato:', device.name);
+
+        // Connetti al dispositivo
+        const server = await device.gatt.connect();
+        console.log('Connesso al dispositivo:', device.name);
+
+        // Ottieni il servizio Eddystone
+        const service = await server.getPrimaryService('feaa');
+        console.log('Servizio Eddystone trovato:', service);
+
+        // Leggi i dati del beacon
+        const characteristic = await service.getCharacteristic('2a6e'); // Caratteristica Eddystone
+        const value = await characteristic.readValue();
+        const decoder = new TextDecoder('utf-8');
+        const beaconData = decoder.decode(value);
+
+        console.log('Dati del beacon:', beaconData);
+
+        // Decodifica l'identificativo del beacon
+        const beaconId = beaconData.slice(0, 32); // Esempio: estrai i primi 32 caratteri
+        console.log('Identificativo del beacon rilevato:', beaconId);
+
+        // Ottieni l'URL corrispondente dalla mappa
+        const url = urlMap[beaconId];
+        if (url) {
+            // Mostra il virtual tour o il contenuto corrispondente
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = `
+                <iframe 
+                    src="${url}" 
+                    width="100%" 
+                    height="500px" 
+                    frameborder="0" 
+                    allowfullscreen>
+                </iframe>
+            `;
+        } else {
+            console.error('Identificativo non riconosciuto:', beaconId);
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = `<p>Nessun contenuto trovato per questo beacon.</p>`;
+        }
+
+        // Disconnetti dal dispositivo
+        await server.disconnect();
+        console.log('Disconnesso dal dispositivo:', device.name);
+
+    } catch (error) {
+        console.error('Errore:', error);
+        const contentDiv = document.getElementById('content');
+        contentDiv.innerHTML = `<p>Errore durante la scansione dei beacon: ${error.message}</p>`;
+    }
 }
 
 // Avvia la scansione quando la pagina è caricata
