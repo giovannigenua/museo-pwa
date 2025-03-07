@@ -1,120 +1,47 @@
-let deferredPrompt;
+// Simulazione dei beacon per test
+const fakeBeacons = [
+    {
+        id: 'ACFD065E1A514932AC01000002040849',
+        name: 'Beacon 1',
+        rssi: -60 // Simuliamo un segnale forte
+    },
+    {
+        id: 'BCFD065E1A514932AC01000002040850',
+        name: 'Beacon 2',
+        rssi: -80 // Simuliamo un segnale più debole
+    }
+];
 
-window.addEventListener('beforeinstallprompt', (event) => {
-    // Previeni la visualizzazione automatica del prompt di installazione
-    event.preventDefault();
-    deferredPrompt = event;
-
-    // Mostra il pulsante di installazione
-    const installButton = document.getElementById('installButton');
-    installButton.style.display = 'block';
-
-    // Gestisci il clic sul pulsante di installazione
-    installButton.addEventListener('click', () => {
-        // Mostra il prompt di installazione
-        deferredPrompt.prompt();
-
-        // Attendi la scelta dell'utente
-        deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-                console.log('L\'utente ha accettato l\'installazione');
-            } else {
-                console.log('L\'utente ha rifiutato l\'installazione');
-            }
-
-            // Resetta la variabile deferredPrompt
-            deferredPrompt = null;
-        });
-    });
-});
-
-// Mappa degli URL
 const urlMap = {
     'ACFD065E1A514932AC01000002040849': 'https://www.museofrigento.it/virtualtour/'
 };
 
-// UUID del servizio Eddystone
-const EDDYSTONE_SERVICE_UUID = '0000feaa-0000-1000-8000-00805f9b34fb';
-
-// Avvia la scansione dei beacon
-async function startScanning() {
-    try {
-        console.log('Avvio della scansione dei beacon...');
-
-        // Verifica se il browser supporta l'API Web Bluetooth
-        if (!navigator.bluetooth) {
-            throw new Error('Il browser non supporta l\'API Web Bluetooth.');
+// Funzione per simulare la scansione dei beacon
+function simulateScanning() {
+    console.log('Simulazione scansione beacon in corso...');
+    
+    const strongestBeacon = fakeBeacons.reduce((prev, curr) => (curr.rssi > prev.rssi ? curr : prev));
+    console.log(`Beacon rilevato: ${strongestBeacon.name} (RSSI: ${strongestBeacon.rssi})`);
+    
+    if (strongestBeacon.rssi > -70) {
+        const url = urlMap[strongestBeacon.id];
+        if (url) {
+            displayVirtualTour(url);
+        } else {
+            console.log('Nessun contenuto associato al beacon rilevato.');
         }
-
-        // Richiedi un dispositivo Bluetooth
-        const device = await navigator.bluetooth.requestDevice({
-            acceptAllDevices: true, // Accetta tutti i dispositivi BLE
-            optionalServices: [EDDYSTONE_SERVICE_UUID] // UUID del servizio Eddystone
-        });
-
-        console.log('Dispositivo trovato:', device.name);
-
-        // Connetti al dispositivo
-        const server = await device.gatt.connect();
-        console.log('Connesso al dispositivo:', device.name);
-
-        // Prova a ottenere il servizio Eddystone
-        try {
-            const service = await server.getPrimaryService(EDDYSTONE_SERVICE_UUID);
-            console.log('Servizio Eddystone trovato:', service);
-
-            // Leggi i dati del beacon
-            const characteristic = await service.getCharacteristic('2a6e'); // Caratteristica Eddystone
-            const value = await characteristic.readValue();
-            const decoder = new TextDecoder('utf-8');
-            const beaconData = decoder.decode(value);
-
-            console.log('Dati del beacon:', beaconData);
-
-            // Decodifica l'identificativo del beacon
-            const beaconId = beaconData.slice(0, 32); // Esempio: estrai i primi 32 caratteri
-            console.log('Identificativo del beacon rilevato:', beaconId);
-
-            // Ottieni l'URL corrispondente dalla mappa
-            const url = urlMap[beaconId];
-            if (url) {
-                // Mostra il virtual tour o il contenuto corrispondente
-                const contentDiv = document.getElementById('content');
-                contentDiv.innerHTML = `
-                    <iframe 
-                        src="${url}" 
-                        width="100%" 
-                        height="500px" 
-                        frameborder="0" 
-                        allowfullscreen>
-                    </iframe>
-                `;
-            } else {
-                console.error('Identificativo non riconosciuto:', beaconId);
-                const contentDiv = document.getElementById('content');
-                contentDiv.innerHTML = `<p>Nessun contenuto trovato per questo beacon.</p>`;
-            }
-        } catch (error) {
-            console.error('Errore durante la lettura del beacon:', error);
-            const contentDiv = document.getElementById('content');
-            contentDiv.innerHTML = `<p>Il dispositivo non supporta il formato Eddystone.</p>`;
-        }
-
-        // Disconnetti dal dispositivo
-        await server.disconnect();
-        console.log('Disconnesso dal dispositivo:', device.name);
-
-    } catch (error) {
-        console.error('Errore:', error);
-        const contentDiv = document.getElementById('content');
-        contentDiv.innerHTML = `<p>Errore durante la scansione dei beacon: ${error.message}</p>`;
     }
 }
 
-// Avvia la scansione quando la pagina è caricata
+// Funzione per visualizzare il virtual tour
+function displayVirtualTour(url) {
+    const contentDiv = document.getElementById('content');
+    contentDiv.innerHTML = `<iframe src="${url}" width="100%" height="500px" frameborder="0" allowfullscreen></iframe>`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const scanButton = document.createElement('button');
-    scanButton.textContent = 'Cerca beacon';
+    scanButton.textContent = 'Simula Scansione Beacon';
     scanButton.style.marginTop = '20px';
     scanButton.style.padding = '10px 20px';
     scanButton.style.backgroundColor = '#007BFF';
@@ -122,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     scanButton.style.border = 'none';
     scanButton.style.borderRadius = '5px';
     scanButton.style.cursor = 'pointer';
-    scanButton.addEventListener('click', startScanning);
+    scanButton.addEventListener('click', simulateScanning);
 
     document.querySelector('main').appendChild(scanButton);
 });
