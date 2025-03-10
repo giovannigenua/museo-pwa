@@ -30,12 +30,12 @@ window.addEventListener('beforeinstallprompt', (event) => {
 
 // mqtt.js - Gestione connessione MQTT
 
-const MQTT_BROKER = "ws://172.27.103.176:9002"; // WebSocket MQTT (assicurati che il broker supporti WebSocket)
-const MQTT_USERNAME = "mqqt-user";
-const MQTT_PASSWORD = "gegenua85";
-const MQTT_TOPIC = "test/museo";
+//const MQTT_BROKER = "ws://172.27.103.176:9002"; // WebSocket MQTT (assicurati che il broker supporti WebSocket)
+//const MQTT_USERNAME = "mqqt-user";
+//const MQTT_PASSWORD = "gegenua85";
+//const MQTT_TOPIC = "test/museo";
 
-let client;
+//let client;
 
 function connectMQTT() {
     client = mqtt.connect(MQTT_BROKER, {
