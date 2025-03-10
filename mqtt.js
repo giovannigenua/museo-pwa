@@ -1,6 +1,6 @@
 // mqtt.js - Gestione connessione MQTT
 
-const MQTT_BROKER = "ws://172.18.0.6:9002"; // WebSocket MQTT (assicurati che il broker supporti WebSocket)
+const MQTT_BROKER = "ws://172.27.103.176:9002"; // WebSocket MQTT (assicurati che il broker supporti WebSocket)
 const MQTT_USERNAME = "mqqt-user";
 const MQTT_PASSWORD = "gegenua85";
 const MQTT_TOPIC = "test/museo";
@@ -23,8 +23,15 @@ function connectMQTT() {
     });
 
     client.on("message", (topic, message) => {
-        console.log(`Messaggio ricevuto su ${topic}: ${message.toString()}`);
-        document.getElementById("mqttMessages").innerHTML += `<p>${message.toString()}</p>`;
+        console.log(`📨 Messaggio ricevuto su ${topic}: ${message.toString()}`);
+        
+        // Verifica che l'elemento esista prima di modificarlo
+        const contentDiv = document.getElementById('content');
+        if (contentDiv) {
+            contentDiv.innerHTML = `<p>Messaggio dal Beacon: ${message.toString()}</p>`;
+        } else {
+            console.error('Elemento con ID "content" non trovato');
+        }
     });
 
     client.on("error", (error) => {
