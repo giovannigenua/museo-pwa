@@ -1,72 +1,85 @@
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', (event) => {
-    // Previeni la visualizzazione automatica del prompt di installazione
     event.preventDefault();
     deferredPrompt = event;
 
-    // Mostra il pulsante di installazione
     const installButton = document.getElementById('installButton');
     installButton.style.display = 'block';
 
-    // Gestisci il clic sul pulsante di installazione
     installButton.addEventListener('click', () => {
-        // Mostra il prompt di installazione
         deferredPrompt.prompt();
-
-        // Attendi la scelta dell'utente
         deferredPrompt.userChoice.then((choiceResult) => {
             if (choiceResult.outcome === 'accepted') {
-                console.log('L\'utente ha accettato l\'installazione');
+                console.log("L'utente ha accettato l'installazione");
             } else {
-                console.log('L\'utente ha rifiutato l\'installazione');
+                console.log("L'utente ha rifiutato l'installazione");
             }
-
-            // Resetta la variabile deferredPrompt
             deferredPrompt = null;
         });
     });
 });
 
-// mqtt.js - Gestione connessione MQTT
+const MQTT_BROKER = "ws://192.168.107.159:1884"; // WebSocket MQTT
+const MQTT_TOPIC = "test/museo";
 
-//const MQTT_BROKER = "ws://172.27.103.176:9002"; // WebSocket MQTT (assicurati che il broker supporti WebSocket)
-//const MQTT_USERNAME = "mqqt-user";
-//const MQTT_PASSWORD = "gegenua85";
-//const MQTT_TOPIC = "test/museo";
+// Mappa degli URL per ogni beacon
+const urlMap = {
+    "ACFD065EC3C011E39BBE1A514932AC01": "https://www.museofrigento.it/virtualtour/"
+};
 
-//let client;
+const client = mqtt.connect(MQTT_BROKER, {
+    username: "mqtt_user",
+    password: "gegenua85"
+});
 
-function connectMQTT() {
-    client = mqtt.connect(MQTT_BROKER, {
-        username: MQTT_USERNAME,
-        password: MQTT_PASSWORD
+// Elementi HTML
+const notificationDiv = document.getElementById("notification");
+const openTourButton = document.getElementById("openTour");
+const contentDiv = document.getElementById("content");
+
+client.on("connect", () => {
+    console.log("Connesso al broker MQTT");
+    client.subscribe(MQTT_TOPIC, (err) => {
+        if (!err) {
+            console.log(`Sottoscritto al topic ${MQTT_TOPIC}`);
+        }
     });
+});
 
-    client.on("connect", () => {
-        console.log("MQTT connesso");
-        client.subscribe(MQTT_TOPIC, (err) => {
-            if (!err) {
-                console.log(`Iscritto al topic: ${MQTT_TOPIC}`);
+client.on("message", (topic, message) => {
+    if (topic === MQTT_TOPIC) {
+        const rssi = parseInt(message.toString(), 10);
+        console.log(`Beacon rilevato! RSSI: ${rssi}`);
+
+        if (rssi > -80) { // Se il beacon è abbastanza vicino
+            const beaconId = "ACFD065EC3C011E39BBE1A514932AC01";
+            const url = urlMap[beaconId];
+
+            if (url) {
+                // Mostra la notifica con il pulsante "Apri"
+                notificationDiv.style.display = "block";
+
+                // Quando l'utente preme "Apri", carica il Virtual Tour nel div
+                openTourButton.onclick = () => {
+                    notificationDiv.style.display = "none"; // Nasconde la notifica
+
+                    // Carica il Virtual Tour nell'iframe
+                    contentDiv.innerHTML = `
+                        <iframe 
+                            src="${url}" 
+                            width="100%" 
+                            height="500px" 
+                            frameborder="0" 
+                            allowfullscreen>
+                        </iframe>
+                    `;
+                };
             }
-        });
-    });
+        }
+    }
+});
 
-    client.on("message", (topic, message) => {
-        console.log(`Messaggio ricevuto su ${topic}: ${message.toString()}`);
-        document.getElementById("mqttMessages").innerHTML += `<p>${message.toString()}</p>`;
-    });
-
-    client.on("error", (error) => {
-        console.error("Errore MQTT:", error);
-    });
-}
-
-function sendMQTTMessage() {
-    const message = "Messaggio di test dal client";
-    client.publish(MQTT_TOPIC, message);
-    console.log("Messaggio inviato:", message);
-}
-
-// Avvia la connessione MQTT quando la pagina è caricata
-document.addEventListener("DOMContentLoaded", connectMQTT);
+client.on("error", (error) => {
+    console.error("Errore MQTT:", error);
+});
