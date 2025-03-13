@@ -13,17 +13,30 @@
     </header>
     <main>
         <button id="installButton" style="display: block;">Installa l'app</button>
+
+        <!-- Aggiungi pulsante per la scansione dei beacon -->
+        <button id="scanButton" style="margin-top: 20px; padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Inizia la scansione dei beacon
+        </button>
+
+        <!-- Notifica quando si trova un beacon nelle vicinanze -->
         <div id="notification" style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
         background-color: #007BFF; color: white; padding: 15px; border-radius: 10px; text-align: center; box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);">
-        <p>Sei vicino a un'opera d'arte! Vuoi aprire il Virtual Tour?</p>
-        <button id="openTour" style="background-color: white; color: #007BFF; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer;">Apri</button>
-    </div>
+            <p>Sei vicino a un'opera d'arte! Vuoi aprire il Virtual Tour?</p>
+            <button id="openTour" style="background-color: white; color: #007BFF; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer;">Apri</button>
+        </div>
 
-    <div id="content" style="margin-top: 20px;"></div>
+        <!-- Area dove viene caricato il Virtual Tour -->
+        <div id="content" style="margin-top: 20px;"></div>
     </main>
+    
+    <!-- Libreria MQTT -->
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <!-- <script src="mqtt.js"></script>-->
+
+    <!-- Script per il funzionamento dell'app -->
     <script src="app.js"></script>
+    
+    <!-- Registrazione del Service Worker per la PWA -->
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js')
