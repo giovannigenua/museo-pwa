@@ -65,8 +65,11 @@ function startBeaconScan() {
     .catch(error => console.error("Errore nella scansione dei beacon: ", error));
 }
 
-// Avvia la scansione dei beacon BLE
-startBeaconScan();
+// Aggiungi un listener per il click che avvia la scansione dei beacon
+const scanButton = document.getElementById("scanButton");
+scanButton.addEventListener("click", () => {
+    startBeaconScan(); // Avvia la scansione dei beacon al click dell'utente
+});
 
 client.on("connect", () => {
     console.log("Connesso al broker MQTT");
