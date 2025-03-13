@@ -20,7 +20,7 @@ window.addEventListener('beforeinstallprompt', (event) => {
     });
 });
 
-const MQTT_BROKER = "wss://82.54.8.3:8884"; // WebSocket MQTT
+const MQTT_BROKER = "wss://79.41.31.251:8884"; // WebSocket MQTT
 const MQTT_TOPIC = "test/museo";
 
 // Mappa degli URL per ogni beacon
