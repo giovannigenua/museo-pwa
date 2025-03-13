@@ -38,17 +38,18 @@ const notificationDiv = document.getElementById("notification");
 const openTourButton = document.getElementById("openTour");
 const contentDiv = document.getElementById("content");
 
-// Funzione per scansionare i beacon BLE
+// Funzione per scansionare i beacon BLE specifici
 function startBeaconScan() {
     navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,  // Accetta tutti i dispositivi BLE
-        optionalServices: []     // Non abbiamo bisogno di servizi GATT specifici
+        filters: [{
+            services: ['battery_service'], // Filtra per il servizio che i beacon BLE possono trasmettere
+        }],
+        optionalServices: []  // Puoi anche specificare altri servizi GATT opzionali se conosci quelli dei tuoi beacon
     })
     .then(device => {
-        // Dispositivo BLE trovato
         console.log("Dispositivo trovato: ", device);
 
-        // Inizia a monitorare gli advertising del dispositivo
+        // Aggiungi un listener per gli advertising dei beacon
         device.addEventListener('advertisementreceived', event => {
             const rssi = event.rssi;  // RSSI del beacon
             const uuid = event.deviceId;  // UUID del beacon (o indirizzo MAC)
@@ -66,59 +67,53 @@ function startBeaconScan() {
 }
 
 // Aggiungi un listener per il click che avvia la scansione dei beacon
-document.addEventListener("DOMContentLoaded", () => {
-    const scanButton = document.getElementById("scanButton");
-    if (scanButton) {
-        scanButton.addEventListener("click", () => {
-            startBeaconScan(); // Avvia la scansione dei beacon al click dell'utente
-        });
-    } else {
-        console.error("Il pulsante di scansione non è stato trovato!");
-    }
+const scanButton = document.getElementById("scanButton");
+scanButton.addEventListener("click", () => {
+    startBeaconScan(); // Avvia la scansione dei beacon al click dell'utente
+});
 
-    client.on("connect", () => {
-        console.log("Connesso al broker MQTT");
-        client.subscribe(MQTT_TOPIC, (err) => {
-            if (!err) {
-                console.log(`Sottoscritto al topic ${MQTT_TOPIC}`);
-            }
-        });
-    });
-
-    client.on("message", (topic, message) => {
-        if (topic === MQTT_TOPIC) {
-            const rssi = parseInt(message.toString(), 10);
-            console.log(`Beacon rilevato! RSSI: ${rssi}`);
-
-            if (rssi > -80) { // Se il beacon è abbastanza vicino
-                const beaconId = "ACFD065EC3C011E39BBE1A514932AC01";
-                const url = urlMap[beaconId];
-
-                if (url) {
-                    // Mostra la notifica con il pulsante "Apri"
-                    notificationDiv.style.display = "block";
-
-                    // Quando l'utente preme "Apri", carica il Virtual Tour nel div
-                    openTourButton.onclick = () => {
-                        notificationDiv.style.display = "none"; // Nasconde la notifica
-
-                        // Carica il Virtual Tour nell'iframe
-                        contentDiv.innerHTML = `
-                            <iframe 
-                                src="${url}" 
-                                width="100%" 
-                                height="500px" 
-                                frameborder="0" 
-                                allowfullscreen>
-                            </iframe>
-                        `;
-                    };
-                }
-            }
+client.on("connect", () => {
+    console.log("Connesso al broker MQTT");
+    client.subscribe(MQTT_TOPIC, (err) => {
+        if (!err) {
+            console.log(`Sottoscritto al topic ${MQTT_TOPIC}`);
         }
     });
+});
 
-    client.on("error", (error) => {
-        console.error("Errore MQTT:", error);
-    });
+client.on("message", (topic, message) => {
+    if (topic === MQTT_TOPIC) {
+        const rssi = parseInt(message.toString(), 10);
+        console.log(`Beacon rilevato! RSSI: ${rssi}`);
+
+        if (rssi > -80) { // Se il beacon è abbastanza vicino
+            const beaconId = "ACFD065EC3C011E39BBE1A514932AC01";
+            const url = urlMap[beaconId];
+
+            if (url) {
+                // Mostra la notifica con il pulsante "Apri"
+                notificationDiv.style.display = "block";
+
+                // Quando l'utente preme "Apri", carica il Virtual Tour nel div
+                openTourButton.onclick = () => {
+                    notificationDiv.style.display = "none"; // Nasconde la notifica
+
+                    // Carica il Virtual Tour nell'iframe
+                    contentDiv.innerHTML = `
+                        <iframe 
+                            src="${url}" 
+                            width="100%" 
+                            height="500px" 
+                            frameborder="0" 
+                            allowfullscreen>
+                        </iframe>
+                    `;
+                };
+            }
+        }
+    }
+});
+
+client.on("error", (error) => {
+    console.error("Errore MQTT:", error);
 });
