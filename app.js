@@ -84,7 +84,7 @@ client.on("connect", () => {
 client.on("message", (topic, message) => {
     if (topic === MQTT_TOPIC) {
         const rssi = parseInt(message.toString(), 10);
-        console.log(`Beacon rilevato! RSSI: ${rssi}`);
+        console.log(`Beacon rilevato! RSSI: ${uuid} ciaoooooooo`);
 
         if (rssi > -80) { // Se il beacon è abbastanza vicino
             const beaconId = "ACFD065EC3C011E39BBE1A514932AC01";
